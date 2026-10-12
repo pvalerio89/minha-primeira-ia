@@ -1,0 +1,86 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Minha Primeira IA</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #101827;
+      color: white;
+      text-align: center;
+      padding: 35px 15px;
+    }
+    main {
+      max-width: 550px;
+      margin: auto;
+    }
+    input { margin: 20px 0; }
+    img {
+      max-width: 100%;
+      max-height: 350px;
+      border-radius: 12px;
+    }
+    #resultado {
+      padding: 20px;
+      color: #6ee7b7;
+      font-size: 18px;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>🤖 Minha Primeira IA</h1>
+    <p>Envie uma foto e descubra o que a IA reconhece!</p>
+
+    <input type="file" id="foto" accept="image/*">
+    <div><img id="preview" alt="Sua foto"></div>
+    <div id="resultado">Aguardando imagem...</div>
+  </main>
+
+  <script type="module">
+    import { pipeline } from
+      "https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.8.1";
+
+    const foto = document.getElementById("foto");
+    const preview = document.getElementById("preview");
+    const resultado = document.getElementById("resultado");
+
+    let classificador;
+
+    foto.addEventListener("change", async () => {
+      const arquivo = foto.files[0];
+      if (!arquivo) return;
+
+      const url = URL.createObjectURL(arquivo);
+      preview.src = url;
+      resultado.textContent = "Carregando inteligência artificial...";
+
+      try {
+        if (!classificador) {
+          classificador = await pipeline(
+            "image-classification",
+            "Xenova/mobilenet_v2_1.0_224",
+            { device: "wasm" }
+          );
+        }
+
+        resultado.textContent = "Analisando imagem...";
+        const previsoes = await classificador(url);
+        const top = previsoes.slice(0, 3);
+
+        resultado.innerHTML = top.map(item =>
+          `${item.label}: ${(item.score * 100).toFixed(1)}%`
+        ).join("<hr>");
+      } catch (erro) {
+        resultado.textContent = "Erro ao carregar a IA. Tente novamente.";
+        console.error(erro);
+      } finally {
+        URL.revokeObjectURL(url);
+      }
+    });
+  </script>
+</body>
+</html>
