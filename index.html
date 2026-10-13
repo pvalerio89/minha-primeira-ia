@@ -62,7 +62,7 @@
         if (!classificador) {
           classificador = await pipeline(
             "image-classification",
-            "Xenova/mobilenet_v2_1.0_224",
+            "Xenova/vit-base-patch16-224",
             { device: "wasm" }
           );
         }
